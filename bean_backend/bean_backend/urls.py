@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from coffee.views import MoodViewSet, MoodCheckinViewSet
+from coffee.brewce import BrewceView
 
 router = DefaultRouter()
 router.register(r'moods', MoodViewSet)
@@ -26,4 +27,5 @@ router.register(r'checkins', MoodCheckinViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/brewce/', BrewceView.as_view(), name='brewce')
 ]
