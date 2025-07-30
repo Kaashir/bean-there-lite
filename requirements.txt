@@ -3,3 +3,6 @@ Django==4.2.23
 djangorestframework==3.16.0
 sqlparse==0.5.3
 typing_extensions==4.14.1
+openai==1.98.0
+python-dotenv==1.0.0
+django-cors-headers==4.3.1

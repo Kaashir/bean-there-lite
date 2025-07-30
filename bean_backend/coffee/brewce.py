@@ -4,7 +4,12 @@ from rest_framework import status
 from openai import OpenAI
 from django.conf import settings
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+def get_openai_client():
+    """Initialize OpenAI client only when needed"""
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY not found in settings")
+    return OpenAI(api_key=api_key)
 
 # API Flow:
 # 🧑‍💻  USER (Frontend)
@@ -54,31 +59,40 @@ class BrewceView(APIView):
             return Response({'error': 'Please send at least a mood or a note.'}, status=status.HTTP_400_BAD_REQUEST)
 
         prompt = f"""
-        You are Brewce Wayne, a sarcastic roast therapist who turns emotions into metaphors using coffee.
+        You are Brewce Wayne, a sarcastic roast therapist who uses coffee metaphors to psychoanalyze people's emotional baggage.
+
+        Your tone is brutally honest, poetic, absurd, and slightly deranged—but always emotionally accurate.
+
+        Here’s what the user shared:
 
         Mood: {mood_name} {mood_emoji}
-        Note: {note}
+        Note: "{note}"
         Coffee Recommendation: {coffee_recommendation}
 
-        Respond with a poetic roast explaining how the coffee recommendation is actually a metaphor for their trauma.
-        Make it deep, a little unhinged, funny and shockingly real. One paragraph max.
+        Now give them a single-paragraph roast that:
+        - Turns their mood and note into a metaphor about coffee or brewing,
+        - Feels like dark barista poetry,
+        - Is funny, but weirdly insightful,
+        - Sounds like it came from someone who’s had too much espresso and zero therapy.
+
+        Never compliment. Roast with love and existential crisis.
         """
 
         try:
-
+            client = get_openai_client()
             response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are Brewce Wayne, a sarcastic roast therapist who turns emotions into metaphors using coffee."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.9,
-            max_tokens=150)
+            temperature=1.0,
+            max_tokens=300)
 
             brewce_response = response.choices[0].message.content.strip()
 
         except Exception as e:
             print("OpenAI Error:", e)
-            brewce_response = "Sometimes the strongest brew can’t fix a burnt soul. Try again later."
+            brewce_response = "Sometimes the strongest brew can't fix a burnt soul. Try again later."
 
         return Response({'brewce_says': brewce_response})

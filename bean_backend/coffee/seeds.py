@@ -36,6 +36,20 @@ def run():
             "coffee_recommendation": "Cold brew with coconut milk and 0 cares given.",
             "spotify_track_link": "https://open.spotify.com/track/2X485T9Z5Ly0xyaghN73ed",  # Laid-back
             "affirmational_roast": "You're so cool you make iced coffee shiver."
+        },
+        {
+            "name": "Anxious",
+            "emoji": "😰",
+            "coffee_recommendation": "Decaf with a side of existential dread.",
+            "spotify_track_link": "https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh",  # Anxiety vibes
+            "affirmational_roast": "Your anxiety is like a coffee grinder stuck on high speed."
+        },
+        {
+            "name": "Grateful",
+            "emoji": "🙏",
+            "coffee_recommendation": "Blessed blend with gratitude grounds.",
+            "spotify_track_link": "https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b",  # Thankful vibes
+            "affirmational_roast": "You're like a coffee bean that finally found its purpose."
         }
     ]
 
