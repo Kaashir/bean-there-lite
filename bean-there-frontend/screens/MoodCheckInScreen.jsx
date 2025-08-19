@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, Animated } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, Animated, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import MoodSelector from '../components/MoodSelector';
 import NoteInput from '../components/NoteInput';
-import SubmitButton from '../components/SubmitButton';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function MoodCheckInScreen({ navigation }) {
   const [selectedMood, setSelectedMood] = useState(null);
@@ -44,7 +44,7 @@ export default function MoodCheckInScreen({ navigation }) {
 
     try {
       // First, get the mood details to pass to Brewce
-      const moodResponse = await fetch('http://192.168.178.69:8000/api/moods/', {
+      const moodResponse = await fetch(API_ENDPOINTS.MOODS, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ export default function MoodCheckInScreen({ navigation }) {
       }
 
       // Submit the check-in
-      const checkinResponse = await fetch('http://192.168.178.69:8000/api/checkins/', {
+      const checkinResponse = await fetch(API_ENDPOINTS.CHECKINS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ export default function MoodCheckInScreen({ navigation }) {
       const checkinData = await checkinResponse.json();
 
       // Get Brewce's response
-      const brewceResponse = await fetch('http://192.168.178.69:8000/api/brewce/', {
+      const brewceResponse = await fetch(API_ENDPOINTS.BREWCE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,51 +115,64 @@ export default function MoodCheckInScreen({ navigation }) {
     }
   };
 
-  // View can be changed to scrollview if when keyboard is open, you can't see the text behind it and you need the ability to scroll.
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        {/* App Title */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.appTitle}>☕ Bean There Lite</Text>
-          <Text style={styles.subtitle}>Coffee Therapy with Brewce Wayne</Text>
-        </View>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.content}>
+          {/* App Header */}
+          <View style={styles.header}>
+            <View style={styles.titleRow}>
+              <Text style={styles.coffeeIcon}>☕</Text>
+              <Text style={styles.appTitle}>Bean There Lite</Text>
+            </View>
+            <Text style={styles.subtitle}>Coffee Therapy with Brewce Wayne</Text>
+          </View>
 
-                {/* Glowing Card */}
-        <Animated.View
-          style={[
-            styles.card,
-            {
-              shadowColor: '#8a46ff',
-              shadowOpacity: glowAnimation.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.3, 0.8],
-              }),
-              shadowRadius: glowAnimation.interpolate({
-                inputRange: [0, 1],
-                outputRange: [8, 20],
-              }),
-              elevation: glowAnimation.interpolate({
-                inputRange: [0, 1],
-                outputRange: [5, 15],
-              }),
-            }
-          ]}
-        >
-          <Text style={styles.cardTitle}>How are you feeling today?</Text>
-
-          <MoodSelector selected={selectedMood} onSelect={setSelectedMood} />
-          <NoteInput value={noteText} onChange={setNoteText} />
-
-          <SubmitButton
-            onPress={handleSubmit}
-            isLoading={isLoading}
-            disabled={!selectedMood || !noteText.trim()}
+          {/* Main Card */}
+          <Animated.View
+            style={[
+              styles.card,
+              {
+                shadowColor: '#8a46ff',
+                shadowOpacity: glowAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.3, 0.8],
+                }),
+                shadowRadius: glowAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [8, 20],
+                }),
+                elevation: glowAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [5, 15],
+                }),
+              }
+            ]}
           >
-            Check in
-          </SubmitButton>
-        </Animated.View>
-      </View>
+            <Text style={styles.cardTitle}>How are you feeling today?</Text>
+
+            <MoodSelector selected={selectedMood} onSelect={setSelectedMood} />
+            <NoteInput value={noteText} onChange={setNoteText} />
+
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                (!selectedMood || !noteText.trim() || isLoading) && styles.submitButtonDisabled
+              ]}
+              onPress={handleSubmit}
+              disabled={!selectedMood || !noteText.trim() || isLoading}
+            >
+              <Text style={styles.submitButtonText}>
+                {isLoading ? 'Checking in...' : 'Check in ☕'}
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }
@@ -167,38 +180,45 @@ export default function MoodCheckInScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
   },
-  titleContainer: {
+  content: {
+    alignItems: 'center',
+    maxWidth: 400,
+    width: '100%',
+  },
+  header: {
     alignItems: 'center',
     marginBottom: 40,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  coffeeIcon: {
+    fontSize: 32,
+    color: '#8a46ff',
+    marginRight: 8,
   },
   appTitle: {
     fontSize: 32,
     color: '#8a46ff',
-    fontFamily: 'SpaceGrotesk-Bold',
-    textAlign: 'center',
-    marginBottom: 8,
-    textShadowColor: '#8a46ff',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    fontWeight: 'bold',
   },
   subtitle: {
     fontSize: 16,
     color: '#888',
-    fontFamily: 'Inter',
     textAlign: 'center',
   },
-
   card: {
     backgroundColor: '#1e1e1e',
     borderRadius: 20,
     padding: 32,
     width: '100%',
-    maxWidth: 400,
     borderWidth: 2,
     borderColor: '#8a46ff',
     shadowColor: '#8a46ff',
@@ -210,8 +230,32 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     color: '#f5f5f5',
-    fontFamily: 'SpaceGrotesk-Bold',
+    fontWeight: 'bold',
     marginBottom: 24,
     textAlign: 'center',
+  },
+  submitButton: {
+    backgroundColor: '#8a46ff',
+    borderColor: '#9a56ff',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginTop: 24,
+    shadowColor: '#8a46ff',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#4a4a4a',
+    opacity: 0.6,
+  },
+  submitButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });

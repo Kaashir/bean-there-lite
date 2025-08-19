@@ -14,6 +14,7 @@ export default function NoteInput({ value, onChange }) {
         onChangeText={onChange}
         blurOnSubmit={false}
         returnKeyType="default"
+        keyboardAppearance="dark"
       />
     </View>
   );
